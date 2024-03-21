@@ -53,18 +53,35 @@ class HangmanGame:
         self.root = root
         self.root.title("Hangman")
         
-        self.canvas = tk.Canvas(root, width=300, height=400)
+        self.canvas = tk.Canvas(root, width=400, height=500)  # Increased canvas size
         self.canvas.pack()
 
-        # Button to start the game
-        self.start_button = tk.Button(root, text="Start Game", command=self.show_description,
-                                      font=("Comic Sans MS", 25, "bold"), bg="#A94064", fg="#FFC1CC", relief="raised")
+        # Frame for buttons
+        self.button_frame = tk.Frame(root)
+        self.button_frame.pack(pady=20)
+
+        # Start button
+        self.start_button = tk.Button(self.button_frame, text="Start Game", command=self.show_description,
+                                      font=("Comic Sans MS", 15, "bold"), bg="#A94064", fg="#FFC1CC", relief="raised")
         self.start_button.config(width=15, height=2)  # Adjust width and height
-        self.start_button.pack(pady=20)  # Add some padding around the button
+        self.start_button.pack(side=tk.LEFT, padx=10)  # Add some padding around the button
+
+        # End button
+        self.end_button = tk.Button(self.button_frame, text="End Game", command=self.close_window,
+                                     font=("Helvetica", 15, "bold"), bg="pink", fg="#F25278", relief="raised")
+        self.end_button.config(width=15, height=2)  # Adjust width and height
+        self.end_button.pack(side=tk.LEFT, padx=10)  # Add some padding around the button
+        self.end_button.pack_forget()  # Initially hide the end button
+
+        # Initialize score
+        self.score = 0
 
     def show_description(self):
         # Hide the start button once the game is started
         self.start_button.pack_forget()
+
+        # Show the end button
+        self.end_button.pack(side=tk.LEFT, padx=10)
 
         # Create a new window for instructions
         self.instruction_window = tk.Toplevel()
@@ -76,39 +93,39 @@ class HangmanGame:
         description += "2. If you guess a letter correctly, it will appear in the word.\n"
         description += "3. If you guess incorrectly, a part of the hangman will be drawn.\n"
         description += "4. You have 6 chances to guess the word.\n\n"
-        description += "Click Next to start the game!"
-        
+        description += "Click Next to choose a theme."
+
         instruction_label = tk.Label(self.instruction_window, text=description, font=("calibiri", 20))
-        instruction_label.pack(padx=40, pady=40)
+        instruction_label.pack(padx=40, pady=20)
 
-        # Next button to start the game
-        next_button = tk.Button(self.instruction_window, text="Next", command=self.show_good_luck_page,
-                                font=("Funky", 12, "bold"), bg="#800000", fg="#C0C0C0", relief="raised")
-        next_button.pack(pady=10)
-
-    def show_good_luck_page(self):
-        # Close the instruction window
-        self.instruction_window.destroy()
-
-        # Create a new window for the "Good Luck!" page
-        self.good_luck_window = tk.Toplevel()
-        self.good_luck_window.title("Good Luck!")
-
-        # Display "Good Luck!" message
-        good_luck_label = tk.Label(self.good_luck_window, text="Good luck with the game!", font=("Comic Sans MS", 20))
-        good_luck_label.pack(padx=20, pady=20)
-
-        # Next button to start the game
-        next_button = tk.Button(self.good_luck_window, text="Next", command=self.start_game,font=("Helvetica", 12, "bold"), bg="#3F704D", fg="#FFE4E1", relief="raised")
+        # Next button to choose theme
+        next_button = tk.Button(self.instruction_window, text="Next", command=self.show_theme_options,
+                                font=("Helvetica", 12, "bold"), bg="#3F704D", fg="#FFE4E1", relief="raised")
         next_button.pack(pady=20)
 
-    def start_game(self):
-        # Close the "Good Luck!" window
-        self.good_luck_window.destroy()
+    def show_theme_options(self):
+        # Destroy the instruction window
+        self.instruction_window.destroy()
 
-        # Choose a random word category and word from the categories
-        self.word_type = random.choice(list(words.keys()))
-        self.word_to_guess = random.choice(words[self.word_type])
+        # Create a new window for theme selection
+        self.theme_window = tk.Toplevel()
+        self.theme_window.title("Choose Theme")
+
+        # Display theme selection options
+        themes = ['Fruits', 'Animals', 'Flowers', 'Countries']
+        for theme in themes:
+            theme_button = tk.Button(self.theme_window, text=theme, command=lambda t=theme: self.start_game(t),
+                                     font=("Helvetica", 20, "bold"), bg="#3F704D", fg="#FFE4E1", relief="raised")
+            theme_button.pack(pady=10)
+
+    def start_game(self, theme):
+        # Close the theme window
+        self.theme_window.destroy()
+
+        # Choose a word from the selected theme
+        self.word_to_guess = random.choice(words[theme.lower()])
+
+        # Initialize game variables
         self.correct_letters = set()
         self.missed_letters = set()
         self.incorrect_guesses = 0
@@ -120,8 +137,8 @@ class HangmanGame:
 
     def draw_gallows(self):
         # Display the hangman image corresponding to the number of incorrect guesses
-        self.canvas.create_text(150, 20, text="Hangman", font=("Comic Sans MS", 40, "italic"), fill="#8A496B")  # Funky font
-        self.canvas.create_text(150, 100, text=HANGMAN_PICS[self.incorrect_guesses], font=("", 12))
+        self.canvas.create_text(200, 40, text="Hangman", font=("Comic Sans MS", 40, "italic"), fill="#8A496B")  # Funky font
+        self.canvas.create_text(200, 150, text=HANGMAN_PICS[self.incorrect_guesses], font=("", 28))
 
     def draw_word(self):
         # Display the word with correct letters filled in and underscores for missing letters
@@ -131,27 +148,29 @@ class HangmanGame:
                 word_display += letter + " "
             else:
                 word_display += "_ "
-        self.canvas.create_text(150, 200, text=word_display, font=("Helvetica", 30), fill="teal")
+        self.canvas.create_text(200, 300, text=word_display, font=("Helvetica", 30), fill="teal")
 
     def draw_letters(self):
         # Display the alphabet as buttons for letter selection
         for i, letter in enumerate("abcdefghijklmnopqrstuvwxyz"):
             col = i % 9
             row = i // 9
-            x = 30 + col * 30
-            y = 270 + row * 30
+            x = 50 + col * 30
+            y = 350 + row * 30  # Adjusted y position
             if letter in self.missed_letters:
                 # If letter is missed, display a cross over the letter
                 self.canvas.create_line(x - 10, y - 10, x + 10, y + 10, fill="red")
                 self.canvas.create_line(x + 10, y - 10, x - 10, y + 10, fill="red")
             else:
                 # Otherwise, display the letter as a button for selection
-                self.canvas.create_text(x, y, text=letter, font=("Helvetica", 20,"italic"),tags=letter, fill="#0A1172" )
+                self.canvas.create_text(x, y, text=letter, font=("Helvetica", 25, "italic"), tags=letter, fill="#0A1172")
                 self.canvas.tag_bind(letter, "<Button-1>", lambda event, l=letter: self.check_letter(l))
 
     def check_letter(self, letter):
         # Check if the selected letter is correct or incorrect
         if letter in self.correct_letters or letter in self.missed_letters:
+            # If the letter has already been guessed (correctly or incorrectly), display a message
+            messagebox.showinfo("Hangman", f"The letter '{letter}' has already been guessed!")
             return
 
         if letter in self.word_to_guess:
@@ -163,8 +182,9 @@ class HangmanGame:
             self.draw_letters()
 
             if self.word_to_guess == "".join([l if l in self.correct_letters else "_" for l in self.word_to_guess]):
-                # If word is guessed, display congratulations message and end game
-                messagebox.showinfo("Hangman", f"Congratulations! You guessed the {self.word_type}!")
+                # If word is guessed, update score, display congratulations message, and end game
+                self.score += 1
+                messagebox.showinfo("Hangman", f"Congratulations! You guessed the word: {self.word_to_guess}!")
                 self.end_game()
         else:
             # If incorrect letter, update display and check if game is lost
@@ -177,28 +197,47 @@ class HangmanGame:
 
             if self.incorrect_guesses == len(HANGMAN_PICS) - 1:
                 # If game is lost, display the correct word and end game
-                messagebox.showinfo("Hangman", f"Game Over! The {self.word_type} was '{self.word_to_guess}'")
+                messagebox.showinfo("Hangman", f"Game Over! The correct word was: {self.word_to_guess}")
                 self.end_game()
-            elif len(self.missed_letters) == 4:
-                # If certain number of incorrect guesses, provide a hint about word category
-                hint_type = self.word_type.capitalize()  # Capitalize the word type for display
-                messagebox.showinfo("Hangman Hint", f"The word is related to {hint_type}.")
 
     def end_game(self):
-        # Display button to end game and reset
-        self.end_button = tk.Button(self.root, text="End Game", command=self.reset_game,
-                                     font=("Helvetica", 14, "bold"), bg="pink", fg="#F25278", relief="raised")
-        self.end_button.config(width=15, height=2)  # Adjust width and height
-        self.end_button.pack(pady=20)  # Add some padding around the button
+        # Destroy the button frame
+        self.button_frame.destroy()
+
+        # Frame for restart button and score display
+        self.restart_frame = tk.Frame(self.root)
+        self.restart_frame.pack(pady=20)
+
+        # Label to display score
+        score_label = tk.Label(self.restart_frame, text=f"Score: {self.score}", font=("Helvetica", 15))
+        score_label.pack(pady=10)
+
+        # Button to restart the game
+        restart_button = tk.Button(self.restart_frame, text="Restart Game", command=self.reset_game,
+                                   font=("Helvetica", 15, "bold"), bg="#6B8E23", fg="#FFFFE0", relief="raised")
+        restart_button.config(width=15, height=2)  # Adjust width and height
+        restart_button.pack(side=tk.LEFT, padx=10)  # Add some padding around the button
+
+        # End button
+        end_button = tk.Button(self.restart_frame, text="End Game", command=self.close_window,
+                                     font=("Helvetica", 15, "bold"), bg="pink", fg="#F25278", relief="raised")
+        end_button.config(width=15, height=2)  # Adjust width and height
+        end_button.pack(side=tk.LEFT, padx=10)  # Add some padding around the button
+
+    def close_window(self):
+        # Close the game window
+        self.root.destroy()
 
     def reset_game(self):
+        # Destroy restart frame
+        self.restart_frame.destroy()
+
         # Reset game state and start a new game
-        self.end_button.pack_forget()  # Hide the end button
         self.canvas.delete("all")
-        self.start_game()
+        self.score = 0
+        self.show_theme_options()  # Prompt user to choose theme again
 
 if __name__ == "__main__":
     root = tk.Tk()
     game = HangmanGame(root)
     root.mainloop()
-
