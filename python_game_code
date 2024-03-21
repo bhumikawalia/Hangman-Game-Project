@@ -45,7 +45,7 @@ words = {
     'fruits': ['apple', 'banana', 'orange', 'grape', 'strawberry', 'watermelon', 'pineapple'],
     'animals': ['ant', 'bear', 'cat', 'dog', 'elephant', 'giraffe', 'zebra'],
     'flowers': ['rose', 'daisy', 'tulip', 'sunflower', 'lily', 'orchid', 'daffodil'],
-    'countries': ['USA', 'Canada', 'UK', 'France', 'Germany', 'Japan', 'Australia']
+    'countries': ['usa', 'canada', 'uk', 'france', 'germany', 'japan', 'australia','india']
 }
 
 class HangmanGame:
